@@ -1,0 +1,11 @@
+which grep
+history
+badexe
+echo "Hello there!"
+history 3x
+history 3
+find . -name "osshell.cpp"
+history clear
+head -n 1 Makefile
+history
+exit

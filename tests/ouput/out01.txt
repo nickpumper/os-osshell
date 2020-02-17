@@ -1,0 +1,3 @@
+Welcome to OSShell! Please enter your commands ('exit' to quit).
+osshell> /bin/grep
+osshell> 
