@@ -1,13 +1,8 @@
-#include <iostream>
-#include <cstdlib>
-#include <string>
-#include <vector>
+#include "osshell.h"
 
 using namespace std;
 
-vector<string> splitString(string text, char d);
-string getFullPath(std::string cmd, const vector<string>& os_path_list);
-bool fileExists(std::string full_path, bool *executable);
+int test(); 
 
 
 /*
@@ -27,7 +22,7 @@ int main (int argc, char **argv){
     char* os_path = getenv("PATH");
     vector<string> os_path_list = splitString(os_path, ':');
 
-    std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
+    //std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
     // Repeat:
     //  Print prompt for user input: "osshell> " (no newline)
@@ -37,7 +32,9 @@ int main (int argc, char **argv){
     //  For all other commands, check if an executable by that name is in one of the PATH directories
     //   If yes, execute it
     //   If no, print error statement: "<command_name>: Error running command" (do include newline)
+    //
 
+    test();
     return 0;
 }
 
@@ -58,6 +55,22 @@ string getFullPath(string cmd, const vector<string>& os_path_list){
 // Returns whether a file exists or not; should also set *executable to true/false 
 // depending on if the user has permission to execute the file
 bool fileExists(string full_path, bool *executable){
+
+    struct stat stat_buff; 
+    int err; 
+
+    err = stat( full_path.c_str(), &stat_buff);
+
+    //check if file exists. 
+    if( stat > 0 ){
+
+        if( stat_buff.st_mode & S_IXUSR != 0 ) {
+            *executable = true; 
+        } else { 
+            *executable = false; 
+        }
+        return true;
+    } 
 
     *executable = false;
     return false;

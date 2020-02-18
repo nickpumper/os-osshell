@@ -26,3 +26,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 # REMOVE OLD FILES
 clean:
 	rm -f $(OBJS) $(EXEC)
+
+test: 
+	g++ -o ./obj/tests.o -c -std=c++11 ./src/tests.cpp 
+	g++ -o ./obj/osshell.o -c -std=c++11 ./src/osshell.cpp 
+	g++ -o ./bin/test  ./obj/tests.o ./obj/osshell.o
