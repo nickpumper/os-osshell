@@ -18,9 +18,15 @@ int test();
 
 int main (int argc, char **argv){
 
+    // main vars
     string input;
     char* os_path = getenv("PATH");
     vector<string> os_path_list = splitString(os_path, ':');
+    bool exit = false;
+
+    // command vars
+    string exitCommand = "exit";
+    string historyCommand = "history";
 
     //std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
@@ -34,8 +40,39 @@ int main (int argc, char **argv){
     //   If no, print error statement: "<command_name>: Error running command" (do include newline)
     //
 
-    test();
+    // main loop - exits on "exit" command
+    while (!exit) {
+        input = getUserInput();
+
+        // --- check for commands ---
+        // TODO: this is all super crude, implement checks later
+
+        //check for exit command
+        if (input.find(exitCommand) != std::string::npos) {
+            std::exit(1);
+        } // 
+
+        // check for history command
+        
+    } // while !exit
+
+    //test();
     return 0;
+}
+
+// Prompts the user for input, then returns it as a string so we can do things with it.
+string getUserInput() {
+    string input;
+
+    cout << "osshell> "; // Mirrinan wants this prompt
+    cin.clear(); // for safety
+    getline(cin, input); // ive found getline to be the safest
+
+    return input;
+} //getUserInput
+
+void history () {
+
 }
 
 // Returns vector of strings created by splitting `text` on every occurance of `d`
@@ -62,7 +99,7 @@ bool fileExists(string full_path, bool *executable){
     err = stat( full_path.c_str(), &stat_buff);
 
     //check if file exists. 
-    if( stat > 0 ){
+    if( err > 0 ){
 
         if( stat_buff.st_mode & S_IXUSR != 0 ) {
             *executable = true; 
@@ -75,7 +112,6 @@ bool fileExists(string full_path, bool *executable){
     *executable = false;
     return false;
 }
-
 
 
 /*

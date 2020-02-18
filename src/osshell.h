@@ -7,7 +7,7 @@
 
 using namespace std; 
 
-
 vector<string> splitString(string text, char d);
 string getFullPath(std::string cmd, const vector<string>& os_path_list);
 bool fileExists(std::string full_path, bool *executable);
+string getUserInput();
