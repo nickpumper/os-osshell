@@ -3,11 +3,11 @@
 using namespace std;
 
 int test(); 
-
+const int HISTORY_LIMIT = 128;
 
 /*
  * Copyright (C) Tyler Beverley, Nick Pumper. 
- * No use without explicit permision.  
+ * No use without explicit permission.  
  *
  * This program is a Homework assignment where we created created a terminal shell 
  * for the user to run linux programs in. It is not intented to be used. 
@@ -28,6 +28,9 @@ int main (int argc, char **argv){
     string exitCommand = "exit";
     string historyCommand = "history";
 
+    // history command vars
+    string * history = new string[HISTORY_LIMIT]; // to get this to persist across runs of OSShell, should probably move to a text file
+
     //std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
     // Repeat:
@@ -45,20 +48,29 @@ int main (int argc, char **argv){
         input = getUserInput();
 
         // --- check for commands ---
+        
         // TODO: this is all super crude, implement checks later
+        // gonna need to replace the find method calls with something more substantial
+        // probably implement a method with a switch that sees if its a valid command?
 
         //check for exit command
         if (input.find(exitCommand) != std::string::npos) {
             std::exit(1);
-        } // 
+        } // if
 
         // check for history command
+        if (input.find(historyCommand) != std::string::npos) {
+            historyPrintAll(history);
+        } // if
         
+
+        // if it was a valid command, add it to the history of commands
+        addToHistory(input, history);
     } // while !exit
 
     //test();
     return 0;
-}
+} // main
 
 // Prompts the user for input, then returns it as a string so we can do things with it.
 string getUserInput() {
@@ -71,9 +83,31 @@ string getUserInput() {
     return input;
 } //getUserInput
 
-void history () {
+// looks back on prev user input and prints out what was up (up to 128 commands)
+void historyPrintAll (string * history) {
+    for (int i = 0; i < HISTORY_LIMIT; i++) {
+        if (!history[i].empty()) {
+            cout << i << ": " << history[i] << "\n";
+        }
+    } // for
+} // historyPrintAll
 
-}
+// adds the given string to the string array that should be the history array
+void addToHistory (string input, string * history) {
+    bool foundEmpty = false;
+    int i = 0;
+
+    // TO DO: error catch if it goes over 128 commands
+
+    while (!foundEmpty) {
+        if (history[i].empty()) {
+            foundEmpty = true;
+            history[i] = input;
+        } // if
+
+        i++;
+    } // while
+} // addToHistory
 
 // Returns vector of strings created by splitting `text` on every occurance of `d`
 vector<string> splitString(string text, char d){
@@ -112,7 +146,6 @@ bool fileExists(string full_path, bool *executable){
     *executable = false;
     return false;
 }
-
 
 /*
  * Checks if the char array contains only numerical ASCII. 
