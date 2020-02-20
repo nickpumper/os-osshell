@@ -14,3 +14,5 @@ bool fileExists(std::string full_path, bool *executable);
 string getUserInput();
 void addToHistory (string input, string * history);
 void historyPrintAll (string * history);
+void detectCommand(string input, string * history );
+void printError (string badCommand);

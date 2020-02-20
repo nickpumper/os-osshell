@@ -4,6 +4,7 @@ using namespace std;
 
 int test(); 
 const int HISTORY_LIMIT = 128;
+const int COMMAND_WORD_LIMIT = 100;
 
 /*
  * Copyright (C) Tyler Beverley, Nick Pumper. 
@@ -24,11 +25,6 @@ int main (int argc, char **argv){
     vector<string> os_path_list = splitString(os_path, ':');
     bool exit = false;
 
-    // command vars
-    string exitCommand = "exit";
-    string historyCommand = "history";
-
-    // history command vars
     string * history = new string[HISTORY_LIMIT]; // to get this to persist across runs of OSShell, should probably move to a text file
 
     //std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
@@ -48,7 +44,7 @@ int main (int argc, char **argv){
         input = getUserInput();
 
         // this will fire commands if detected
-        detectCommand(input);
+        detectCommand(input, history);
         
 
         // add the command to the command history. even bad ones.
@@ -70,9 +66,35 @@ string getUserInput() {
     return input;
 } //getUserInput
 
-void detectCommand(string input) {
+void detectCommand(string input, string * history ) {
 
-    vector<string> command = splitString(input, ' ');
+    string command[COMMAND_WORD_LIMIT];     // use this to store what came out of a command
+    char * text = new char[input.length() + 1]; // for strtok
+    char d = ' ';                               // for strtok
+    const char * delimiter = &d;                      // for strtok
+    int i = 0;
+
+    // possible commands
+    string historyCommand = "history";
+    
+    strcpy(text, input.c_str());
+
+    char * tok = strtok(text, delimiter);
+    while (tok != 0 && i < COMMAND_WORD_LIMIT) {
+        command[i] = tok;
+        // printf("Parsed this out from the input: %s\n", tok);
+
+        // increment
+        tok = strtok(0, delimiter);
+        i++;
+    } // while
+
+    // go through and see if the initial command means anything
+    if (command[0].compare(historyCommand) == 0) {
+        historyPrintAll(history);
+    } else {
+        printError(command[0]);
+    } // else
 } //detectCommand 
 
 // looks back on prev user input and prints out what was up (up to 128 commands)
@@ -115,7 +137,7 @@ vector<string> splitString(string text, char d){
     char * tok = strtok(input, delimiter);
 
     while (tok != 0) {
-        // printf("Parsed this out from the input: %s\n", tok);
+        // printf("[splitString()] Parsed this: %s\n", tok);
         result.push_back(tok);
         tok = strtok(0, delimiter);
     } // while
@@ -179,6 +201,10 @@ int checkIfNumerical( char* c ){
     return 1;
 }
 
+// prints an error statement
+void printError (string badCommand) {
+    cout << badCommand << ": Error running command\n";
+} // printError
 
 
 
