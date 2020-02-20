@@ -47,24 +47,11 @@ int main (int argc, char **argv){
     while (!exit) {
         input = getUserInput();
 
-        // --- check for commands ---
-        
-        // TODO: this is all super crude, implement checks later
-        // gonna need to replace the find method calls with something more substantial
-        // probably implement a method with a switch that sees if its a valid command?
-
-        //check for exit command
-        if (input.find(exitCommand) != std::string::npos) {
-            std::exit(1);
-        } // if
-
-        // check for history command
-        if (input.find(historyCommand) != std::string::npos) {
-            historyPrintAll(history);
-        } // if
+        // this will fire commands if detected
+        detectCommand(input);
         
 
-        // if it was a valid command, add it to the history of commands
+        // add the command to the command history. even bad ones.
         addToHistory(input, history);
     } // while !exit
 
@@ -82,6 +69,11 @@ string getUserInput() {
 
     return input;
 } //getUserInput
+
+void detectCommand(string input) {
+
+    vector<string> command = splitString(input, ' ');
+} //detectCommand 
 
 // looks back on prev user input and prints out what was up (up to 128 commands)
 void historyPrintAll (string * history) {
@@ -114,14 +106,28 @@ vector<string> splitString(string text, char d){
 
     vector<string> result;
 
+    // these are for conversion to use strtok
+    char * input = new char[text.length() + 1];
+    const char * delimiter = &d;
+    
+    strcpy(input, text.c_str());
+
+    char * tok = strtok(input, delimiter);
+
+    while (tok != 0) {
+        // printf("Parsed this out from the input: %s\n", tok);
+        result.push_back(tok);
+        tok = strtok(0, delimiter);
+    } // while
+
     return result;
-}
+} // splitString
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
 string getFullPath(string cmd, const vector<string>& os_path_list){
 
     return "";
-}
+} // getFullPath
 
 // Returns whether a file exists or not; should also set *executable to true/false 
 // depending on if the user has permission to execute the file
@@ -145,7 +151,7 @@ bool fileExists(string full_path, bool *executable){
 
     *executable = false;
     return false;
-}
+} // fileExists
 
 /*
  * Checks if the char array contains only numerical ASCII. 

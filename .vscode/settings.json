@@ -92,6 +92,7 @@
         "vector": "cpp",
         "*.tcc": "cpp",
         "cuchar": "cpp",
-        "memory_resource": "cpp"
+        "memory_resource": "cpp",
+        "filesystem": "cpp"
     }
 }
