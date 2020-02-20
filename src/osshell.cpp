@@ -3,6 +3,8 @@
 using namespace std;
 
 int test(); 
+
+bool exitFlag;
 const int HISTORY_LIMIT = 128;
 const int COMMAND_WORD_LIMIT = 100;
 
@@ -23,9 +25,9 @@ int main (int argc, char **argv){
     string input;
     char* os_path = getenv("PATH");
     vector<string> os_path_list = splitString(os_path, ':');
-    bool exit = false;
 
     string * history = new string[HISTORY_LIMIT]; // to get this to persist across runs of OSShell, should probably move to a text file
+    exitFlag = false;
 
     //std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
@@ -40,7 +42,7 @@ int main (int argc, char **argv){
     //
 
     // main loop - exits on "exit" command
-    while (!exit) {
+    while (!exitFlag) {
         input = getUserInput();
 
         // this will fire commands if detected
@@ -76,9 +78,10 @@ void detectCommand(string input, string * history ) {
 
     // possible commands
     string historyCommand = "history";
+    string exitCommand = "exit";
     
+    // Parse apart the comand
     strcpy(text, input.c_str());
-
     char * tok = strtok(text, delimiter);
     while (tok != 0 && i < COMMAND_WORD_LIMIT) {
         command[i] = tok;
@@ -92,6 +95,8 @@ void detectCommand(string input, string * history ) {
     // go through and see if the initial command means anything
     if (command[0].compare(historyCommand) == 0) {
         historyPrintAll(history);
+    } else if (command[0].compare(exitCommand) == 0) {
+        exitFlag = true;
     } else {
         printError(command[0]);
     } // else
