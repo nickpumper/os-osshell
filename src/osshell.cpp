@@ -1,9 +1,10 @@
 #include "osshell.h"
+#define HISTORY_PATH "./history"
+
 
 using namespace std;
 
 int test(); 
-
 bool exitFlag;
 const int HISTORY_LIMIT = 128;
 const int COMMAND_WORD_LIMIT = 100;
@@ -63,7 +64,7 @@ string getUserInput() {
 
     cout << "osshell> "; // Mirrinan wants this prompt
     cin.clear(); // for safety
-    getline(cin, input); // ive found getline to be the safest
+    getline(cin, input); 
 
     return input;
 } //getUserInput
@@ -102,34 +103,52 @@ void detectCommand(string input, string * history ) {
     } // else
 } //detectCommand 
 
+
 // looks back on prev user input and prints out what was up (up to 128 commands)
-void historyPrintAll (string * history) {
-    for (int i = 0; i < HISTORY_LIMIT; i++) {
-        if (!history[i].empty()) {
-            cout << i << ": " << history[i] << "\n";
-        }
+void printHistory( int quantity ){
+   
+    FILE* f = fopen( HISTORY_PATH, "r"); 
+    char line[1024];  //not sure what the command limit is. 
+
+    if( quantity < 0 ){
+        printf("Error: history expects an integer > 0 (or 'clear')\n");
+    }
+
+    if( quantity > 128 ){
+        quantity = 128; 
+    }
+    
+    int i = 0; 
+    while( fgets(line, sizeof(line), f ) && i <= quantity){
+            printf("  %d: %s\n", i+1, line ); 
+            i++;
     } // for
+
 } // historyPrintAll
 
-// adds the given string to the string array that should be the history array
-void addToHistory (string input, string * history) {
-    bool foundEmpty = false;
-    int i = 0;
 
-    // TO DO: error catch if it goes over 128 commands
+void addToHistory(string input) {
 
-    while (!foundEmpty) {
-        if (history[i].empty()) {
-            foundEmpty = true;
-            history[i] = input;
-        } // if
+    //dont add empty string 
+    if( input.c_str() == "\0" ){
+        return; 
+    }
 
-        i++;
-    } // while
+    FILE* f = fopen( HISTORY_PATH, "a"); 
+    fputs( input.c_str(), f );
+
 } // addToHistory
 
+
+void clearHistory() {
+    char cmd[128];
+    sprintf(cmd, "rm %s", HISTORY_PATH );
+    
+    system(cmd); 
+}
+
 // Returns vector of strings created by splitting `text` on every occurance of `d`
-vector<string> splitString(string text, char d){
+vector<string> splitString( string text, char d ){
 
     vector<string> result;
 
@@ -149,6 +168,7 @@ vector<string> splitString(string text, char d){
 
     return result;
 } // splitString
+
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
 string getFullPath(string cmd, const vector<string>& os_path_list){
@@ -179,6 +199,7 @@ bool fileExists(string full_path, bool *executable){
     *executable = false;
     return false;
 } // fileExists
+
 
 /*
  * Checks if the char array contains only numerical ASCII. 
