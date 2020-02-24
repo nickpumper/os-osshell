@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <stdio.h>
+#include <string.h>
 
 using namespace std; 
 
@@ -13,6 +14,6 @@ string getFullPath(std::string cmd, const vector<string>& os_path_list);
 bool fileExists(std::string full_path, bool *executable);
 string getUserInput();
 void addToHistory (string input, string * history);
-void historyPrintAll (string * history);
+void printHistory(int quantity);
 void detectCommand(string input, string * history );
 void printError (string badCommand);
