@@ -30,7 +30,7 @@ int main (int argc, char **argv){
     string * history = new string[HISTORY_LIMIT]; // to get this to persist across runs of OSShell, should probably move to a text file
     exitFlag = false;
 
-    //std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
+    std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
     // Repeat:
     //  Print prompt for user input: "osshell> " (no newline)
@@ -51,7 +51,7 @@ int main (int argc, char **argv){
         
 
         // add the command to the command history. even bad ones.
-        addToHistory(input, history);
+        addToHistory(input);
     } // while !exit
 
     //test();
@@ -108,6 +108,7 @@ void detectCommand(string input, string * history ) {
 void printHistory( int quantity ){
    
     FILE* f = fopen( HISTORY_PATH, "r"); 
+
     char line[1024];  //not sure what the command limit is. 
 
     if( quantity < 0 ){
@@ -130,7 +131,7 @@ void printHistory( int quantity ){
 void addToHistory(string input) {
 
     //dont add empty string 
-    if( input.c_str() == "\0" ){
+    if( input.empty() ){
         return; 
     }
 
@@ -178,7 +179,7 @@ string getFullPath(string cmd, const vector<string>& os_path_list){
 
 // Returns whether a file exists or not; should also set *executable to true/false 
 // depending on if the user has permission to execute the file
-bool fileExists(string full_path, bool *executable){
+bool fileExists(std::string full_path, bool * executable){
 
     struct stat stat_buff; 
     int err; 
@@ -188,7 +189,7 @@ bool fileExists(string full_path, bool *executable){
     //check if file exists. 
     if( err > 0 ){
 
-        if( stat_buff.st_mode & S_IXUSR != 0 ) {
+        if( stat_buff.st_mode && S_IXUSR != 0 ) {
             *executable = true; 
         } else { 
             *executable = false; 
