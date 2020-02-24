@@ -1,5 +1,5 @@
 #include "osshell.h"
-#define HISTORY_PATH "./history"
+#define HISTORY_PATH "./history.txt"
 
 
 using namespace std;
@@ -46,9 +46,10 @@ int main (int argc, char **argv){
     while (!exitFlag) {
         input = getUserInput();
 
-        // this will fire commands if detected
+        // this will fire the two special commands if detected
         detectCommand(input, history);
         
+        system(input.c_str());
 
         // add the command to the command history. even bad ones.
         addToHistory(input);
@@ -98,9 +99,7 @@ void detectCommand(string input, string * history ) {
         printHistory( 128 );
     } else if (command[0].compare(exitCommand) == 0) {
         exitFlag = true;
-    } else {
-        printError(command[0]);
-    } // else
+    }
 } //detectCommand 
 
 
