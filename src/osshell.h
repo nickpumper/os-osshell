@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 using namespace std; 
 
@@ -16,5 +17,5 @@ string getUserInput();
 void addToHistory (string input);
 void clearHistory();
 void printHistory(int quantity);
-void detectCommand(string input, string * history );
+void detectCommand(string input );
 void printError (string badCommand);
