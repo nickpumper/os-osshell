@@ -4,8 +4,7 @@
 
 using namespace std;
 
-int test(); 
-bool exitFlag;
+int test(); bool exitFlag;
 const int HISTORY_LIMIT = 128;
 const int COMMAND_WORD_LIMIT = 100;
 
@@ -58,6 +57,39 @@ int main (int argc, char **argv){
     return 0;
 } // main
 
+
+
+
+/*
+ * Takes an input command with arguments then 
+ * forks off a new process to run that command.
+ *
+ *
+ * Custom Commands: 
+ *  history [x] -> show the last x commands typed. 
+ *  quit -> exit out of the shell. 
+ *
+ */
+void execute( char* argc, char** argv, char *path ){
+
+    char* cmd = argv[0]; 
+
+    if( strcmp( cmd, "history" ) == 0 ){
+
+    } 
+    else if( strcmp( cmd, "exit" ) == 0 ) {
+        exit(0);
+    }
+    else if( *cmd == 4 ){ //ctrl-d
+        exit(0);
+    }
+}
+
+
+
+
+
+
 // Prompts the user for input, then returns it as a string so we can do things with it.
 string getUserInput() {
     string input;
@@ -74,7 +106,7 @@ void detectCommand(string input, string * history ) {
     string command[COMMAND_WORD_LIMIT];     // use this to store what came out of a command
     char * text = new char[input.length() + 1]; // for strtok
     char d = ' ';                               // for strtok
-    const char * delimiter = &d;                      // for strtok
+    const char * delimiter = &d;                // for strtok
     int i = 0;
 
     // possible commands
@@ -119,7 +151,7 @@ void printHistory( int quantity ){
     }
     
     int i = 0; 
-    while( fgets(line, sizeof(line), f ) && i <= quantity){
+    while( fgets(line, sizeof(line), f ) && i <= quantity) {
             printf("  %d: %s\n", i+1, line ); 
             i++;
     } // for
@@ -232,5 +264,21 @@ void printError (string badCommand) {
     cout << badCommand << ": Error running command\n";
 } // printError
 
+
+
+/*
+ * djb2 hash func by Dan Bernstein. 
+ */
+unsigned long hash(unsigned char *str) {
+
+    unsigned long hash = 5381;
+    int c = *str;
+
+    while( c != '\0' )
+        hash = ((hash << 5) + hash) + c; 
+        c = *str++;
+
+    return hash;
+}
 
 
