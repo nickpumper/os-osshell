@@ -44,12 +44,28 @@ int main (int argc, char **argv){
 
     // main loop - exits on "exit" command
     while (!exitFlag) {
-        input = getUserInput();
 
-        // this will fire the two special commands if detected
-        detectCommand(input, history);
+        input = getUserInput();
+        char * cmd = new char[input.length() + 1]; // for execv
+
+        detectCommand(input); // this will fire the two special commands if detected
+
+        strcpy(cmd, input.c_str());
+        char * args[] = {cmd,  NULL};
+        pid_t proc;
         
-        system(input.c_str());
+        proc = fork();
+        
+        if (proc == -1) {
+            printError(input);
+        }
+        else if (proc == 0) {
+            cout << "Child process, pid = " << getpid() << "\n";
+            execv(args[0], args);
+            exit(0);
+        } else {
+            cout << "waiting" << "\n";
+        }
 
         // add the command to the command history. even bad ones.
         addToHistory(input);
@@ -70,7 +86,7 @@ string getUserInput() {
     return input;
 } //getUserInput
 
-void detectCommand(string input, string * history ) {
+void detectCommand(string input ) {
 
     string command[COMMAND_WORD_LIMIT];     // use this to store what came out of a command
     char * text = new char[input.length() + 1]; // for strtok
