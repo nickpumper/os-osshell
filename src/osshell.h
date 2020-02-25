@@ -11,9 +11,10 @@ using namespace std;
 
 vector<string> splitString(string text, char d);
 string getFullPath(std::string cmd, const vector<string>& os_path_list);
-bool fileExists(std::string full_path, bool *executable);
+bool fileExists(std::string full_path, bool * executable);
 string getUserInput();
-void addToHistory (string input, string * history);
+void addToHistory (string input);
+void clearHistory();
 void printHistory(int quantity);
 void detectCommand(string input, string * history );
 void printError (string badCommand);
