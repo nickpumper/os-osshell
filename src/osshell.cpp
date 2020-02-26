@@ -306,6 +306,6 @@ int checkIfNumerical( const char* c ){
 
 // prints an error statement
 void printError (string badCommand) {
-    cout << badCommand << ": Error running command " << badCommand << "\n" ;
+    cout << badCommand << ": Error running command" << "\n" ;
 } // printError
 
