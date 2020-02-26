@@ -159,6 +159,8 @@ void printHistory( int quantity ){
         quantity = 128; 
     }
 
+    quantity++; // increment because of loop counter.
+
     //count lines 
     while( fgets(line, sizeof(line), f ) != NULL ){
         line_count++; 
