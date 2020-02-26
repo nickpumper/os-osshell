@@ -112,6 +112,7 @@ void execute(vector<string>& argv){
             
             if( full_path == "" ){
                 //if there are no results do nothing. 
+                printError(cmd);
                 exit(0); 
             }
 
@@ -231,8 +232,6 @@ void convToCharArray( vector<string> vec, char** res  ){
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
 string getFullPath(string cmd, const vector<string>& os_path_list) {
-
-    string result = "";
     
     for (string s: os_path_list) {
         bool executable; 
@@ -246,7 +245,7 @@ string getFullPath(string cmd, const vector<string>& os_path_list) {
         }
     } // for
 
-    return result;   
+    return "";   
 
 } // getFullPath
 
