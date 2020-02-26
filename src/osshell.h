@@ -12,7 +12,7 @@
 using namespace std; 
 
 vector<string> splitString(string text, const char d);
-string getFullPath(std::string cmd, const vector<string>& os_path_list);
+string getFullPath(std::string cmd, const  vector<string>& os_path_list);
 bool fileExists(std::string full_path, bool * executable);
 string getUserInput();
 void addToHistory (string input);
@@ -20,5 +20,5 @@ void clearHistory();
 void printHistory(int quantity);
 void detectCommand(string input);
 void printError(string badCommand);
-void execute( int argc, char** argv, char* full_path); 
+void execute( int argc, vector<string>& argv ); 
 void convToCharArray( vector<string> vec, char** res);   

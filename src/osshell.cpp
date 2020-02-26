@@ -37,18 +37,9 @@ int main (int argc, char** argv){
 
     // main loop - exits on "exit" command
     while (!exitFlag) {
-        vector<string> user_input; 
-        vector<string> env_path; 
-        string full_path; 
-        
-        user_input = splitString( getUserInput(), 32 );   
-        char* argv[ user_input.size() ];
-        convToCharArray(user_input, argv );
+        vector<string> argv = splitString( getUserInput(), ' ');   
 
-        env_path = splitString( getenv("PATH"), ':' );
-        full_path = getFullPath( argv[0], env_path );  
-
-        execute( user_input.size(), argv, (char*) full_path.c_str() ); 
+        execute( argc, argv ); 
     } // while !exit
     return 0;
 } // main
@@ -65,35 +56,48 @@ int main (int argc, char** argv){
  *  quit -> exit out of the shell. 
  *
  */
-void execute( int argc, char** argv, char* full_path){
+void execute( int argc, vector<string>& argv){
 
-    char* cmd = argv[0]; 
+    vector<string> env_path; 
+    string full_path; 
+    string cmd; 
+    char* args[ argv.size() ];
+    //cout << "cmd is: " << argv[0] << endl;
 
-    if( strcmp( cmd, "history" ) == 0 ){
+    cmd = argv[0];
+    env_path = splitString( getenv("PATH"), ':' );
+
+    if( cmd.compare("history") == 0 ){
         
         if( argc > 2 ){
-            //erro
-            int quantity = atoi( argv[1] );
+            int quantity = atoi( args[1] );
             printHistory( quantity );
             return;  
         }
         printHistory( 128 );  
         return;
     } 
-    else if( strcmp( cmd, "exit" ) == 0 ) {
+    else if(  cmd.compare( "exit" ) == 0 ) {
         exitFlag = true; 
     }
-    else if( *cmd == 4 ){ //ctrl-d
-        exitFlag = true; 
-    }
+    //other programs on the machine. 
     else {
         int cid = fork(); 
         if( cid == 0 ){
 
-            printf("%s\n", full_path); 
-            int err = execv(full_path, argv);
+            full_path = getFullPath( cmd, env_path );  
+            convToCharArray(argv, args );
+            
+            if( full_path == "" ){
+                //if there are no results do nothing. 
+                exit(0); 
+            }
+
+            cout << args[0] << args[1] << endl;
+            int err = execv(full_path.c_str(), args);
             if( err == -1 ){
-                printError( string( argv[0] ));   
+                printError( cmd );   
+                cout << errno << endl; 
             }
             exit(0); 
         }
@@ -179,10 +183,12 @@ vector<string> splitString( string text, const char d ){
 
 void convToCharArray( vector<string> vec, char** res  ){
 
-    for( int i = 0; i < vec.size(); i++){
-        res[i] = (char*)vec[i].c_str(); 
-        //printf("arg%d: %s\n", i, res[i]); 
+    int i = 0;  
+    for( i = 0; i < vec.size(); i++){
+        strcpy( res[i], vec[i].c_str() );
     }
+
+    res[i] = NULL; 
 }
 
 
@@ -190,15 +196,24 @@ void convToCharArray( vector<string> vec, char** res  ){
 string getFullPath(string cmd, const vector<string>& os_path_list) {
 
     string result = "";
-
+    
     for (string s: os_path_list) {
-        //search for program 
+        bool executable; 
+        bool exists; 
+
+        string full_path = s + "/" + cmd ; 
+        exists = fileExists( full_path, &executable  );
+
+        if( executable && exists ){
+            return full_path;
+        }
     } // for
 
-    std::cout << "getFullPath returns:" << result << "\n";
-    return result;
+    return result;   
 
 } // getFullPath
+
+
 
 // Returns whether a file exists or not; should also set *executable to true/false 
 // depending on if the user has permission to execute the file
@@ -210,10 +225,11 @@ bool fileExists(std::string full_path, bool* executable){
     err = stat( full_path.c_str(), &stat_buff);
 
     //check if file exists. 
-    if( err > 0 ){
+    if( err > -1 ){
 
         if( stat_buff.st_mode && S_IXUSR != 0 ) {
             *executable = true; 
+
         } else { 
             *executable = false; 
         }
@@ -223,8 +239,6 @@ bool fileExists(std::string full_path, bool* executable){
     *executable = false;
     return false;
 } // fileExists
-
-
 
 
 
@@ -256,26 +270,6 @@ int checkIfNumerical( char* c ){
 
 // prints an error statement
 void printError (string badCommand) {
-    cout << badCommand << ": Error running command\n";
+    cout << badCommand << ": Error running command " << badCommand << "\n" ;
 } // printError
-
-
-
-/*
- * djb2 hash func by Dan Bernstein. 
- * could be used instead of strcomp to figure out command. 
- *
- */
-unsigned long hash(unsigned char *str) {
-
-    unsigned long hash = 5381;
-    int c = *str;
-
-    while( c != '\0' )
-        hash = ((hash << 5) + hash) + c; 
-        c = *str++;
-
-    return hash;
-}
-
 
