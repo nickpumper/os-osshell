@@ -62,12 +62,17 @@ void execute(vector<string>& argv){
     string full_path; 
     string cmd; 
 
+    if( argv.empty() ){
+        return; 
+    }
+
     size_t argc = argv.size();  
     char* args[ argc ];
     //cout << "cmd is: " << argv[0] << endl;
 
     cmd = argv[0];
     env_path = splitString( getenv("PATH"), ':' );
+
 
     if( cmd.compare("history") == 0 ){
         
@@ -82,11 +87,9 @@ void execute(vector<string>& argv){
                     clearHistory(); 
                 }
             }
-
         } else {
             printHistory( 128 );  
         }
-
         return;
     } 
     else if(  cmd.compare( "exit" ) == 0 ) {
@@ -97,7 +100,10 @@ void execute(vector<string>& argv){
     }
     //other programs on the machine. 
     else {
+
+
         int cid = fork(); 
+        printf("%d", cid); 
         if( cid == 0 ){
 
             full_path = getFullPath( cmd, env_path );  
@@ -107,6 +113,8 @@ void execute(vector<string>& argv){
                 //if there are no results do nothing. 
                 exit(0); 
             }
+
+
 
             int err = execv(full_path.c_str(), args);
             if( err == -1 ){
@@ -161,7 +169,7 @@ void printHistory( int quantity ){
     int i = 0; 
     while( fgets(line, sizeof(line), f ) && i <= line_count) {
 
-        if(i > line_count - quantity){
+        if(i >= line_count - quantity){
             printf("  %d: %s", i+1, line ); 
         }
         i++;
@@ -196,6 +204,10 @@ void clearHistory() {
 vector<string> splitString( string text, const char d ){
 
     vector<string> result;
+    if( text.empty() ) {
+        return result; 
+    }
+
     char* tok = strtok( (char*)text.c_str(), &d);
 
     while( tok != 0 ) {
@@ -215,6 +227,7 @@ void convToCharArray( vector<string> vec, char** res  ){
     }
 
     res[i] = NULL; 
+    printf("hello");
 }
 
 
@@ -222,21 +235,34 @@ void convToCharArray( vector<string> vec, char** res  ){
 string getFullPath(string cmd, const vector<string>& os_path_list) {
 
     string result = "";
-    
-    for (string s: os_path_list) {
-        bool executable; 
-        bool exists; 
+    bool executable; 
+    bool exists; 
+    char buff[2048];  
 
-        string full_path = s + "/" + cmd ; 
-        exists = fileExists( full_path, &executable  );
+    //localfile
+    if( cmd.find( "/" ) != -1){
+        
+        string path = string( getcwd( buff, sizeof(buff) ) ); 
+        path = path + "/"  + cmd;
 
+        exists = fileExists( path, &executable);
         if( executable && exists ){
-            return full_path;
+            return path; 
         }
-    } // for
+    } 
+    else {
 
+        for (string s: os_path_list) {
+
+            string full_path = s + "/" + cmd ; 
+            exists = fileExists( full_path, &executable  );
+
+            if( executable && exists ){
+                return full_path;
+            }
+        } // for
+    }
     return result;   
-
 } // getFullPath
 
 
