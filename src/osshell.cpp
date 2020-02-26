@@ -39,7 +39,7 @@ int main (int argc, char** argv){
     while (!exitFlag) {
         vector<string> argv = splitString( getUserInput(), ' ');   
 
-        execute( argc, argv ); 
+        execute(argv ); 
     } // while !exit
     return 0;
 } // main
@@ -56,12 +56,14 @@ int main (int argc, char** argv){
  *  quit -> exit out of the shell. 
  *
  */
-void execute( int argc, vector<string>& argv){
+void execute(vector<string>& argv){
 
     vector<string> env_path; 
     string full_path; 
     string cmd; 
-    char* args[ argv.size() ];
+
+    size_t argc = argv.size();  
+    char* args[ argc ];
     //cout << "cmd is: " << argv[0] << endl;
 
     cmd = argv[0];
@@ -69,8 +71,8 @@ void execute( int argc, vector<string>& argv){
 
     if( cmd.compare("history") == 0 ){
         
-        if( argc > 2 ){
-            if( checkIfNumerical( argv[1].c_str() ) == 0 ){
+        if( argc == 2 ){
+            if( checkIfNumerical( argv[1].c_str() ) == 1 ){
 
                 int quantity = atoi( argv[1].c_str() );
                 printHistory( quantity );
@@ -106,7 +108,6 @@ void execute( int argc, vector<string>& argv){
                 exit(0); 
             }
 
-            cout << args[0] << args[1] << endl;
             int err = execv(full_path.c_str(), args);
             if( err == -1 ){
                 printError( cmd );   
@@ -140,7 +141,7 @@ void printHistory( int quantity ){
     FILE* f = fopen( HISTORY_PATH, "r"); 
     char line[2048]; 
     unsigned long long pos; 
-    int count; // count lines seeked backwards; 
+    int line_count = 0;  
 
 
     if( quantity < 0 ){
@@ -151,21 +152,20 @@ void printHistory( int quantity ){
         quantity = 128; 
     }
 
-    //set file pointer to end of file. 
-    fseek(f, 0, SEEK_END); 
-    pos = ftell( f ); 
-
-    // Move 'pos' away from end of file. 
-    while( count < quantity) { 
-        //if (!fseek(f, --pos, SEEK_SET)) { 
+    //count lines 
+    while( fgets(line, sizeof(line), f ) != NULL ){
+        line_count++; 
     }
+    rewind( f ); 
 
     int i = 0; 
-    while( fgets(line, sizeof(line), f ) && i <= quantity) {
-            printf("  %d: %s\n", i+1, line ); 
-            i++;
-    } // for
+    while( fgets(line, sizeof(line), f ) && i <= line_count) {
 
+        if(i > line_count - quantity){
+            printf("  %d: %s", i+1, line ); 
+        }
+        i++;
+    }
     fclose(f); 
 
 } // historyPrintAll
@@ -180,6 +180,7 @@ void addToHistory(string input) {
 
     FILE* f = fopen( HISTORY_PATH, "a"); 
     fputs( input.c_str(), f );
+    fputs( "\n", f); 
 
     fclose(f); 
 } // addToHistory
