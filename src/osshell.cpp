@@ -1,7 +1,6 @@
 #include "osshell.h"
 #define HISTORY_PATH "./history.txt"
 
-
 using namespace std;
 
 int test(); 
@@ -24,8 +23,8 @@ int main (int argc, char **argv){
 
     // main vars
     string input;
-    char* os_path = getenv("PATH");
-    vector<string> os_path_list = splitString(os_path, ':');
+    char * os_path = getenv("PATH");
+    const vector<string> os_path_list = splitString(os_path, ':');
 
     string * history = new string[HISTORY_LIMIT]; // to get this to persist across runs of OSShell, should probably move to a text file
     exitFlag = false;
@@ -46,26 +45,27 @@ int main (int argc, char **argv){
     while (!exitFlag) {
 
         input = getUserInput();
-        char * cmd = new char[input.length() + 1]; // for execv
+        string path = getFullPath(input, os_path_list).c_str();
+        char * cmd = new char[path.length() + 1]; // for execv
+        strcpy(cmd, path.c_str());
+        int status;
 
         detectCommand(input); // this will fire the two special commands if detected
-
-        strcpy(cmd, input.c_str());
-        char * args[] = {cmd,  NULL};
+        
+        char * args[] = {cmd, 0};
         pid_t proc;
         
-        proc = fork();
-        
-        if (proc == -1) {
-            printError(input);
-        }
-        else if (proc == 0) {
+        if ((proc = fork())== 0) {
             cout << "Child process, pid = " << getpid() << "\n";
-            execv(args[0], args);
+            execv(args[0], args); 
+
+            cout << "Finished\n";
             exit(0);
         } else {
             cout << "waiting" << "\n";
         }
+
+        proc = wait (&status);
 
         // add the command to the command history. even bad ones.
         addToHistory(input);
@@ -106,7 +106,7 @@ void detectCommand(string input ) {
         // printf("Parsed this out from the input: %s\n", tok);
 
         // increment
-        tok = strtok(0, delimiter);
+        tok = strtok(text, delimiter);
         i++;
     } // while
 
@@ -177,7 +177,7 @@ vector<string> splitString( string text, char d ){
     char * tok = strtok(input, delimiter);
 
     while (tok != 0) {
-        // printf("[splitString()] Parsed this: %s\n", tok);
+        //printf("[splitString()] Parsed this: %s\n", tok);
         result.push_back(tok);
         tok = strtok(0, delimiter);
     } // while
@@ -187,9 +187,20 @@ vector<string> splitString( string text, char d ){
 
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
-string getFullPath(string cmd, const vector<string>& os_path_list){
+string getFullPath(string cmd, const vector<string>& os_path_list) {
 
-    return "";
+    string result = "";
+
+    for (string s: os_path_list) {
+        result.append(s);
+    } // for
+
+    result.append("/");
+    result.append(cmd);
+
+        std::cout << "getFullPath returns:" << result << "\n";
+    return result;
+
 } // getFullPath
 
 // Returns whether a file exists or not; should also set *executable to true/false 
