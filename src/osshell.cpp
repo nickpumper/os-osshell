@@ -37,9 +37,13 @@ int main (int argc, char** argv){
 
     // main loop - exits on "exit" command
     while (!exitFlag) {
-        vector<string> argv = splitString( getUserInput(), ' ');   
+        string input = getUserInput();
 
-        execute(argv ); 
+        if ( !input.empty()) {
+            vector<string> argv = splitString( input, ' ');   
+
+            execute(argv ); 
+        }
     } // while !exit
     return 0;
 } // main
@@ -110,7 +114,6 @@ void execute(vector<string>& argv){
                 //if there are no results do nothing. 
                 exit(0); 
             }
-
 
             int err = execv(full_path.c_str(), args);
             if( err == -1 ){
