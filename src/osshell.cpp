@@ -192,13 +192,10 @@ string getFullPath(string cmd, const vector<string>& os_path_list) {
     string result = "";
 
     for (string s: os_path_list) {
-        result.append(s);
+        //search for program 
     } // for
 
-    result.append("/");
-    result.append(cmd);
-
-        std::cout << "getFullPath returns:" << result << "\n";
+    std::cout << "getFullPath returns:" << result << "\n";
     return result;
 
 } // getFullPath
