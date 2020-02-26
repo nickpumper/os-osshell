@@ -95,6 +95,9 @@ void execute(vector<string>& argv){
     else if( cmd.compare( "quit" ) == 0 ){
         exitFlag = true; 
     }
+    else if ( cmd.compare("history clear") == 0) {
+        clearHistory();
+    }
     //other programs on the machine. 
     else {
         int cid = fork(); 
@@ -107,6 +110,7 @@ void execute(vector<string>& argv){
                 //if there are no results do nothing. 
                 exit(0); 
             }
+
 
             int err = execv(full_path.c_str(), args);
             if( err == -1 ){
@@ -158,6 +162,8 @@ void printHistory( int quantity ){
     }
     rewind( f ); 
 
+    // cout << "There are " << line_count << " lines.\n";
+    // print the history
     int i = 0; 
     while( fgets(line, sizeof(line), f ) && i <= line_count) {
 
