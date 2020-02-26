@@ -70,14 +70,27 @@ void execute( int argc, vector<string>& argv){
     if( cmd.compare("history") == 0 ){
         
         if( argc > 2 ){
-            int quantity = atoi( args[1] );
-            printHistory( quantity );
-            return;  
+            if( checkIfNumerical( argv[1].c_str() ) == 0 ){
+
+                int quantity = atoi( argv[1].c_str() );
+                printHistory( quantity );
+
+            } else {
+                if( argv[1].compare( "clear" ) == 0  ) { 
+                    clearHistory(); 
+                }
+            }
+
+        } else {
+            printHistory( 128 );  
         }
-        printHistory( 128 );  
+
         return;
     } 
     else if(  cmd.compare( "exit" ) == 0 ) {
+        exitFlag = true; 
+    }
+    else if( cmd.compare( "quit" ) == 0 ){
         exitFlag = true; 
     }
     //other programs on the machine. 
@@ -101,7 +114,7 @@ void execute( int argc, vector<string>& argv){
             }
             exit(0); 
         }
-        else{
+        else {
             int result; 
             wait( &result );
         }
@@ -125,7 +138,10 @@ string getUserInput() {
 void printHistory( int quantity ){
    
     FILE* f = fopen( HISTORY_PATH, "r"); 
-    char line[1024];  //not sure what the command limit is. 
+    char line[2048]; 
+    unsigned long long pos; 
+    int count; // count lines seeked backwards; 
+
 
     if( quantity < 0 ){
         printf("Error: history expects an integer > 0 (or 'clear')\n");
@@ -134,7 +150,16 @@ void printHistory( int quantity ){
     if( quantity > 128 ){
         quantity = 128; 
     }
-    
+
+    //set file pointer to end of file. 
+    fseek(f, 0, SEEK_END); 
+    pos = ftell( f ); 
+
+    // Move 'pos' away from end of file. 
+    while( count < quantity) { 
+        //if (!fseek(f, --pos, SEEK_SET)) { 
+    }
+
     int i = 0; 
     while( fgets(line, sizeof(line), f ) && i <= quantity) {
             printf("  %d: %s\n", i+1, line ); 
@@ -249,7 +274,7 @@ bool fileExists(std::string full_path, bool* executable){
  * Returns 0 if error
  * Returns 1 otherwise. 
  */
-int checkIfNumerical( char* c ){
+int checkIfNumerical( const char* c ){
 
     //loop through the capactiy, stop if end of string
     //or if there are too many decimals
