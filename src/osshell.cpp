@@ -3,7 +3,6 @@
 #define HISTORY_LIMIT 128 
 #define COMMAND_LIMIT 100 
 
-
 using namespace std;
 
 int test();
@@ -24,8 +23,6 @@ bool exitFlag;
 int main (int argc, char** argv){
 
     // main vars
-    //vector<string> os_path_list = splitString(os_path, ':');
-
     std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
     // Repeat:
@@ -40,7 +37,6 @@ int main (int argc, char** argv){
 
     // main loop - exits on "exit" command
     while (!exitFlag) {
-
         vector<string> user_input; 
         vector<string> env_path; 
         string full_path; 
@@ -108,7 +104,6 @@ void execute( int argc, char** argv, char* full_path){
     }
 }
 
-
 string getUserInput() {
     string input;
 
@@ -120,7 +115,6 @@ string getUserInput() {
 
     return input;
 } //getUserInput
-
 
 
 // looks back on prev user input and prints out what was up (up to 128 commands)
@@ -193,9 +187,20 @@ void convToCharArray( vector<string> vec, char** res  ){
 
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
-string getFullPath(string cmd, const vector<string>& os_path_list){
+string getFullPath(string cmd, const vector<string>& os_path_list) {
 
-    return "";
+    string result = "";
+
+    for (string s: os_path_list) {
+        result.append(s);
+    } // for
+
+    result.append("/");
+    result.append(cmd);
+
+        std::cout << "getFullPath returns:" << result << "\n";
+    return result;
+
 } // getFullPath
 
 // Returns whether a file exists or not; should also set *executable to true/false 
