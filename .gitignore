@@ -1,5 +1,5 @@
-./bin/*
-./obj/*
+*/bin/*
+*/obj/*
 *.swp
 .vscode/*
-bin/history.txt
+*/history.txt

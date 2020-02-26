@@ -1,12 +1,14 @@
 #include "osshell.h"
 #define HISTORY_PATH "./history.txt"
+#define HISTORY_LIMIT 128 
+#define COMMAND_LIMIT 100 
 
 
 using namespace std;
 
-int test(); bool exitFlag;
-const int HISTORY_LIMIT = 128;
-const int COMMAND_WORD_LIMIT = 100;
+int test();
+bool exitFlag;
+
 
 /*
  * Copyright (C) Tyler Beverley, Nick Pumper. 
@@ -19,15 +21,10 @@ const int COMMAND_WORD_LIMIT = 100;
 
  
 
-int main (int argc, char **argv){
+int main (int argc, char** argv){
 
     // main vars
-    string input;
-    char* os_path = getenv("PATH");
-    vector<string> os_path_list = splitString(os_path, ':');
-
-    string * history = new string[HISTORY_LIMIT]; // to get this to persist across runs of OSShell, should probably move to a text file
-    exitFlag = false;
+    //vector<string> os_path_list = splitString(os_path, ':');
 
     std::cout << "Welcome to OSShell! Please enter your commands ('exit' to quit)." << std::endl;
 
@@ -44,36 +41,21 @@ int main (int argc, char **argv){
     // main loop - exits on "exit" command
     while (!exitFlag) {
 
-        input = getUserInput();
-        char * cmd = new char[input.length() + 1]; // for execv
-
-        detectCommand(input); // this will fire the two special commands if detected
-
-        strcpy(cmd, input.c_str());
-        char * args[] = {cmd,  NULL};
-        pid_t proc;
+        vector<string> user_input; 
+        vector<string> env_path; 
+        string full_path; 
         
-        proc = fork();
-        
-        if (proc == -1) {
-            printError(input);
-        }
-        else if (proc == 0) {
-            cout << "Child process, pid = " << getpid() << "\n";
-            execv(args[0], args);
-            exit(0);
-        } else {
-            cout << "waiting" << "\n";
-        }
+        user_input = splitString( getUserInput(), 32 );   
+        char* argv[ user_input.size() ];
+        convToCharArray(user_input, argv );
 
-        // add the command to the command history. even bad ones.
-        addToHistory(input);
+        env_path = splitString( getenv("PATH"), ':' );
+        full_path = getFullPath( argv[0], env_path );  
+
+        execute( user_input.size(), argv, (char*) full_path.c_str() ); 
     } // while !exit
-
-    //test();
     return 0;
 } // main
-
 
 
 
@@ -83,79 +65,68 @@ int main (int argc, char **argv){
  *
  *
  * Custom Commands: 
- *  history [x] -> show the last x commands typed. 
+ *  history [x] -> show the last x commands typed. 128 default. 
  *  quit -> exit out of the shell. 
  *
  */
-void execute( char* argc, char** argv, char *path ){
+void execute( int argc, char** argv, char* full_path){
 
     char* cmd = argv[0]; 
 
     if( strcmp( cmd, "history" ) == 0 ){
-
+        
+        if( argc > 2 ){
+            //erro
+            int quantity = atoi( argv[1] );
+            printHistory( quantity );
+            return;  
+        }
+        printHistory( 128 );  
+        return;
     } 
     else if( strcmp( cmd, "exit" ) == 0 ) {
-        exit(0);
+        exitFlag = true; 
     }
     else if( *cmd == 4 ){ //ctrl-d
-        exit(0);
+        exitFlag = true; 
+    }
+    else {
+        int cid = fork(); 
+        if( cid == 0 ){
+
+            printf("%s\n", full_path); 
+            int err = execv(full_path, argv);
+            if( err == -1 ){
+                printError( string( argv[0] ));   
+            }
+            exit(0); 
+        }
+        else{
+            int result; 
+            wait( &result );
+        }
     }
 }
 
 
-
-
-
-
-// Prompts the user for input, then returns it as a string so we can do things with it.
 string getUserInput() {
     string input;
 
-    cout << "osshell> "; // Mirrinan wants this prompt
-    cin.clear(); // for safety
+    cout << "osshell> "; 
+    cin.clear(); 
     getline(cin, input); 
+
+    addToHistory( input ); 
 
     return input;
 } //getUserInput
 
-void detectCommand(string input ) {
-
-    string command[COMMAND_WORD_LIMIT];     // use this to store what came out of a command
-    char * text = new char[input.length() + 1]; // for strtok
-    char d = ' ';                               // for strtok
-    const char * delimiter = &d;                // for strtok
-    int i = 0;
-
-    // possible commands
-    string historyCommand = "history";
-    string exitCommand = "exit";
-    
-    // Parse apart the comand
-    strcpy(text, input.c_str());
-    char * tok = strtok(text, delimiter);
-    while (tok != 0 && i < COMMAND_WORD_LIMIT) {
-        command[i] = tok;
-        // printf("Parsed this out from the input: %s\n", tok);
-
-        // increment
-        tok = strtok(0, delimiter);
-        i++;
-    } // while
-
-    // go through and see if the initial command means anything
-    if (command[0].compare(historyCommand) == 0) {
-        printHistory( 128 );
-    } else if (command[0].compare(exitCommand) == 0) {
-        exitFlag = true;
-    }
-} //detectCommand 
 
 
 // looks back on prev user input and prints out what was up (up to 128 commands)
 void printHistory( int quantity ){
    
     FILE* f = fopen( HISTORY_PATH, "r"); 
-
     char line[1024];  //not sure what the command limit is. 
 
     if( quantity < 0 ){
@@ -172,6 +143,8 @@ void printHistory( int quantity ){
             i++;
     } // for
 
+    fclose(f); 
+
 } // historyPrintAll
 
 
@@ -185,37 +158,38 @@ void addToHistory(string input) {
     FILE* f = fopen( HISTORY_PATH, "a"); 
     fputs( input.c_str(), f );
 
+    fclose(f); 
 } // addToHistory
 
 
 void clearHistory() {
     char cmd[128];
     sprintf(cmd, "rm %s", HISTORY_PATH );
-    
     system(cmd); 
 }
 
 // Returns vector of strings created by splitting `text` on every occurance of `d`
-vector<string> splitString( string text, char d ){
+vector<string> splitString( string text, const char d ){
 
     vector<string> result;
+    char* tok = strtok( (char*)text.c_str(), &d);
 
-    // these are for conversion to use strtok
-    char * input = new char[text.length() + 1];
-    const char * delimiter = &d;
-    
-    strcpy(input, text.c_str());
-
-    char * tok = strtok(input, delimiter);
-
-    while (tok != 0) {
-        // printf("[splitString()] Parsed this: %s\n", tok);
+    while( tok != 0 ) {
         result.push_back(tok);
-        tok = strtok(0, delimiter);
+        tok = strtok(0, &d);
     } // while
 
     return result;
 } // splitString
+
+
+void convToCharArray( vector<string> vec, char** res  ){
+
+    for( int i = 0; i < vec.size(); i++){
+        res[i] = (char*)vec[i].c_str(); 
+        //printf("arg%d: %s\n", i, res[i]); 
+    }
+}
 
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
@@ -226,7 +200,7 @@ string getFullPath(string cmd, const vector<string>& os_path_list){
 
 // Returns whether a file exists or not; should also set *executable to true/false 
 // depending on if the user has permission to execute the file
-bool fileExists(std::string full_path, bool * executable){
+bool fileExists(std::string full_path, bool* executable){
 
     struct stat stat_buff; 
     int err; 
@@ -247,6 +221,9 @@ bool fileExists(std::string full_path, bool * executable){
     *executable = false;
     return false;
 } // fileExists
+
+
+
 
 
 /*
@@ -284,6 +261,8 @@ void printError (string badCommand) {
 
 /*
  * djb2 hash func by Dan Bernstein. 
+ * could be used instead of strcomp to figure out command. 
+ *
  */
 unsigned long hash(unsigned char *str) {
 
