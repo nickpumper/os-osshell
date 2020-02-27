@@ -75,7 +75,11 @@ void execute(vector<string>& argv){
 
     if( cmd.compare("history") == 0 ){
         
-        if( argc == 2 ){
+        if (argc == 1) {
+            cout << "one arg \n";
+            printHistory( 128 );  
+        }
+        else if( argc == 2 ){
             if( checkIfNumerical( argv[1].c_str() ) == 1 ){
 
                 int quantity = atoi( argv[1].c_str() );
@@ -84,13 +88,11 @@ void execute(vector<string>& argv){
             } else {
                 if( argv[1].compare( "clear" ) == 0  ) { 
                     clearHistory(); 
+                } else {
+                    printf("Error: history expects an integer > 0 (or 'clear')\n");
                 }
             }
-
-        } else {
-            printHistory( 128 );  
         }
-
         return;
     } 
     else if(  cmd.compare( "exit" ) == 0 ) {
@@ -152,7 +154,7 @@ void printHistory( int quantity ){
     int line_count = 0;  
 
 
-    if( quantity < 0 ){
+    if( quantity <= 0 ){
         printf("Error: history expects an integer > 0 (or 'clear')\n");
     }
 
