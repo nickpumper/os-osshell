@@ -167,15 +167,13 @@ void printHistory( int quantity ){
     int line_count = 0;  
 
 
-    if( quantity <= 0 ){
+    if( quantity < 0 ){
         printf("Error: history expects an integer > 0 (or 'clear')\n");
     }
 
     if( quantity > 128 ){
         quantity = 128; 
     }
-
-    quantity++; // increment because of loop counter.
 
     //count lines 
     while( fgets(line, sizeof(line), f ) != NULL ){
