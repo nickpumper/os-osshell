@@ -76,7 +76,6 @@ void execute(vector<string>& argv){
     if( cmd.compare("history") == 0 ){
         
         if (argc == 1) {
-            cout << "one arg \n";
             printHistory( 128 );  
         }
         else if( argc == 2 ){
@@ -167,7 +166,6 @@ void printHistory( int quantity ){
     }
     rewind( f ); 
 
-    // cout << "There are " << line_count << " lines.\n";
     // print the history
     int i = 0; 
     while( fgets(line, sizeof(line), f ) && i <= line_count) {
