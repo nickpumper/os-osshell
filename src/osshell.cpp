@@ -101,9 +101,6 @@ void execute(vector<string>& argv){
     else if( cmd.compare( "quit" ) == 0 ){
         exitFlag = true; 
     }
-    else if ( cmd.compare("history clear") == 0) {
-        clearHistory();
-    }
     //other programs on the machine. 
     else {
         int cid = fork(); 
