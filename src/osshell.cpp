@@ -79,7 +79,10 @@ void execute(vector<string>& argv){
 
     if( cmd.compare("history") == 0 ){
         
-        if( argc == 2 ){
+        if (argc == 1) {
+            printHistory( 128 );  
+        }
+        else if( argc == 2 ){
             if( checkIfNumerical( argv[1].c_str() ) == 1 ){
 
                 int quantity = atoi( argv[1].c_str() );
@@ -164,7 +167,7 @@ void printHistory( int quantity ){
     int line_count = 0;  
 
 
-    if( quantity < 0 ){
+    if( quantity <= 0 ){
         printf("Error: history expects an integer > 0 (or 'clear')\n");
     }
 
@@ -172,12 +175,15 @@ void printHistory( int quantity ){
         quantity = 128; 
     }
 
+    quantity++; // increment because of loop counter.
+
     //count lines 
     while( fgets(line, sizeof(line), f ) != NULL ){
         line_count++; 
     }
     rewind( f ); 
 
+    // print the history
     int i = 0; 
     while( fgets(line, sizeof(line), f ) && i <= line_count) {
 
@@ -239,7 +245,7 @@ vector<string> splitString( string text, const char d ){
 
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
 string getFullPath(string cmd, const vector<string>& os_path_list) {
-
+    
     string result = "";
     bool executable; 
     bool exists; 
