@@ -14,7 +14,7 @@ EXEC= $(addprefix $(BINDIR)/, osshell)
 mkdirs:= $(shell mkdir -p $(OBJDIR) $(BINDIR))
 
 # BUILD EVERYTHING
-all: $(EXEC)
+all: $(EXEC) 
 
 $(EXEC): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIB)
@@ -26,6 +26,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 # REMOVE OLD FILES
 clean:
 	rm -f $(OBJS) $(EXEC)
+	rm ./history.txt
 
 test: 
 	g++ -o ./obj/tests.o -c -std=c++11 ./src/tests.cpp 

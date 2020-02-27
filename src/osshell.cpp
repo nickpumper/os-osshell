@@ -37,9 +37,12 @@ int main (int argc, char** argv){
 
     // main loop - exits on "exit" command
     while (!exitFlag) {
-        vector<string> argv = splitString( getUserInput(), ' ');   
+        string input = getUserInput(); 
+        vector<string> argv = splitString( input, ' ');   
 
         execute(argv ); 
+        addToHistory( input ); 
+
     } // while !exit
     return 0;
 } // main
@@ -67,8 +70,8 @@ void execute(vector<string>& argv){
     }
 
     size_t argc = argv.size();  
-    char* args[ argc ];
-    //cout << "cmd is: " << argv[0] << endl;
+    char** args; 
+
 
     cmd = argv[0];
     env_path = splitString( getenv("PATH"), ':' );
@@ -82,15 +85,15 @@ void execute(vector<string>& argv){
                 int quantity = atoi( argv[1].c_str() );
                 printHistory( quantity );
 
+            } else if( argv[1].compare( "clear" ) == 0)  {
+                clearHistory(); 
             } else {
-                if( argv[1].compare( "clear" ) == 0  ) { 
-                    clearHistory(); 
-                }
+                //printError
+                printHistory(-1);
             }
         } else {
             printHistory( 128 );  
         }
-        return;
     } 
     else if(  cmd.compare( "exit" ) == 0 ) {
         exitFlag = true; 
@@ -101,31 +104,41 @@ void execute(vector<string>& argv){
     //other programs on the machine. 
     else {
 
+        full_path = getFullPath( cmd, env_path );  
+
+        if( full_path == "" ){
+            //if there are no results do nothing. 
+            printError( cmd );   
+            return; 
+        }
+
+        const char** args = new const char* [argv.size()+1];
+
+        for (int i = 0;  i < argv.size();  i++) {     // copy args
+            args[i] = argv[i].c_str();
+        }
+        args[argv.size()] = NULL;  
+
 
         int cid = fork(); 
-        printf("%d", cid); 
         if( cid == 0 ){
 
-            full_path = getFullPath( cmd, env_path );  
-            convToCharArray(argv, args );
-            
-            if( full_path == "" ){
-                //if there are no results do nothing. 
-                exit(0); 
-            }
+            int err = execv(full_path.c_str(), (char**) args);
 
-
-
-            int err = execv(full_path.c_str(), args);
             if( err == -1 ){
                 printError( cmd );   
-                cout << errno << endl; 
+                //cout << errno << endl; 
             }
             exit(0); 
         }
         else {
             int result; 
             wait( &result );
+
+            if( result != 0 ){
+                //cout << "Did not exit safely!" << endl;
+                //exit(1);
+            }
         }
     }
 }
@@ -137,7 +150,6 @@ string getUserInput() {
     cin.clear(); 
     getline(cin, input); 
 
-    addToHistory( input ); 
 
     return input;
 } //getUserInput
@@ -185,6 +197,9 @@ void addToHistory(string input) {
     if( input.empty() ){
         return; 
     }
+    if(input.compare( "history clear" ) == 0){
+        return;
+    }
 
     FILE* f = fopen( HISTORY_PATH, "a"); 
     fputs( input.c_str(), f );
@@ -199,6 +214,9 @@ void clearHistory() {
     sprintf(cmd, "rm %s", HISTORY_PATH );
     system(cmd); 
 }
+
+
+
 
 // Returns vector of strings created by splitting `text` on every occurance of `d`
 vector<string> splitString( string text, const char d ){
@@ -219,18 +237,6 @@ vector<string> splitString( string text, const char d ){
 } // splitString
 
 
-void convToCharArray( vector<string> vec, char** res  ){
-
-    int i = 0;  
-    for( i = 0; i < vec.size(); i++){
-        strcpy( res[i], vec[i].c_str() );
-    }
-
-    res[i] = NULL; 
-    printf("hello");
-}
-
-
 // Returns a string for the full path of a command if it is found in PATH, otherwise simply return ""
 string getFullPath(string cmd, const vector<string>& os_path_list) {
 
@@ -241,7 +247,7 @@ string getFullPath(string cmd, const vector<string>& os_path_list) {
 
     //localfile
     if( cmd.find( "/" ) != -1){
-        
+
         string path = string( getcwd( buff, sizeof(buff) ) ); 
         path = path + "/"  + cmd;
 
@@ -322,6 +328,6 @@ int checkIfNumerical( const char* c ){
 
 // prints an error statement
 void printError (string badCommand) {
-    cout << badCommand << ": Error running command " << badCommand << "\n" ;
+    cout << badCommand << ": Error running command "<< endl;
 } // printError
 

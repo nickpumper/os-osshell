@@ -20,6 +20,6 @@ void clearHistory();
 void printHistory(int quantity);
 void detectCommand(string input);
 void printError(string badCommand);
-void execute( int argc, vector<string>& argv ); 
-void convToCharArray( vector<string> vec, char** res);   
+void execute( vector<string>& argv ); 
+void convToCharArray( vector<string> vec, char** res );   
 int checkIfNumerical( const char* c );
